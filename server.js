@@ -3,9 +3,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const registerModel = require('./models/register');
-const bcrypt = require('bcrypt');
 const userRoutes = require('./routes/userRoutes');
+const coursesRoute = require('./routes/courseRoutes')
 
 const app = express();
 const PORT = process.env.PORT || 5048;
@@ -22,6 +21,7 @@ mongoose.connect(MONGO_URI, {
 
 
 app.use('/', userRoutes);
+app.use('/courses', coursesRoute)
 
 // Start the server
 app.listen(PORT, () => {
