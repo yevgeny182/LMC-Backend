@@ -3,8 +3,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const userRoutes = require('./routes/userRoutes');
-const coursesRoute = require('./routes/courseRoutes')
+
+
 
 const app = express();
 const PORT = process.env.PORT || 5048;
@@ -20,7 +20,9 @@ mongoose.connect(MONGO_URI, {
   .catch(err => console.error('MongoDB connection failed:', err));
 
 
+const userRoutes = require('./routes/userRoutes');
 app.use('/', userRoutes);
+const coursesRoute = require('./routes/courseRoutes')
 app.use('/courses', coursesRoute)
 
 // Start the server

@@ -62,7 +62,7 @@ router.get('/getCourses', async (req, res) => {
        }
   })
   
-  router.put('updateCourse/:id', async (req, res) => {
+  router.put('/updateCourse/:id', async (req, res) => {
     try{
         const updated = await courseModel.findByIdAndUpdate(req.params.id, req.body, {new: true})
         if(!updated) return res.status(404).json({message: 'Course not found'})
