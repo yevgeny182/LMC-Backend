@@ -3,6 +3,7 @@ const router = express.Router()
 const courseModel = require('../models/courses')
 const userModel = require('../models/register')
 
+//create new course for it to be populated by students
 router.post('/addCourse', async (req, res) =>{
     try{
         const{
@@ -41,6 +42,7 @@ router.post('/addCourse', async (req, res) =>{
     }
 })
 
+//table of displaying courses admins can create, users can join
 router.get('/getCourses', async (req, res) => {
     try {
       const courses = await courseModel.find().populate('students', 'name email status role');
@@ -51,9 +53,12 @@ router.get('/getCourses', async (req, res) => {
     }
   });
 
+//get course byId is to route to a different page for user to add, remove and view students
   router.get('/getCourse/:id', async(req, res) =>{
        try{
-        const course = await courseModel.findById(req.params.id).populate('students', 'name email status role')
+        const course = await courseModel.findById(req.params.id)
+        .populate('students._id', 'name email status role')
+        .populate('students.isAddedBy', 'name')
         if(!course)return res.status(404).json({message: 'course not found'})
             res.status(200).json(course)
        } catch(err){
@@ -61,7 +66,8 @@ router.get('/getCourses', async (req, res) => {
             res.status(500).json({message: 'Failed to fetch course'})
        }
   })
-  
+
+//update the course details population, status and description
   router.put('/updateCourse/:id', async (req, res) => {
     try{
         const updated = await courseModel.findByIdAndUpdate(req.params.id, req.body, {new: true})
@@ -73,6 +79,7 @@ router.get('/getCourses', async (req, res) => {
     }
   })
 
+  //delete the course created
   router.delete('/deleteCourse/:id', async (req, res) => {
     try{
         const deleted = await courseModel.findByIdAndDelete(req.params.id)
@@ -84,5 +91,52 @@ router.get('/getCourses', async (req, res) => {
         res.status(500).json({message: 'Failed to delete course'})
     }
   })
+
+//add singular users to course 
+  router.post('/:courseId/addUser', async (req, res) => {
+    const { courseId } = req.params;
+    const { userId, addedBy } = req.body;
+
+    try {
+      const course = await courseModel.findById(courseId);
+      if (!course) return res.status(404).send('Course not found');
+
+      if (!course.students.includes(userId)) {
+        course.students.push({ _id: userId, isAddedBy: addedBy });
+        await course.save();
+      }
+  
+      res.status(200).json({ message: 'User added to course' });
+    } catch (err) {
+      console.error(err);
+      res.status(500).send('Server error');
+    }
+});
+
+//remove users in course
+router.delete('/:courseId/removeUser', async (req, res) => {
+  const { courseId } = req.params;
+  const { userId } = req.body;
+
+  try{
+    const deleted = await courseModel.findById(courseId)
+      if(!deleted) return res.status(404).json({message: 'user not found'})
+
+      const userIndex = deleted.students.findIndex(
+        (student) => student._id?.toString() === userId
+      )
+
+      if (userIndex === -1) return res.status(404).send('User not found in course');
+  
+      deleted.students.splice(userIndex, 1);
+      await deleted.save();
+
+      return res.status(200).json({message: 'remove from course'})
+  }catch(err){
+    console.log(err)
+    res.status(500).send('server error')
+  }
+})
+
 
 module.exports = router

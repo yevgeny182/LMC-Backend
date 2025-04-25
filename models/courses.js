@@ -6,10 +6,12 @@ const addCourseSchema = new mongoose.Schema({
     population: Number,
     courseUnits: Number,
     courseStatus: String,
-    students:[{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
-    }]
+    students: [
+        {
+          _id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+          isAddedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+        }
+      ]
 }, {timestamps: true})
 
 const addCourse = mongoose.model('Course', addCourseSchema)
