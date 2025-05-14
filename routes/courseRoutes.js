@@ -12,7 +12,8 @@ router.post('/addCourse', async (req, res) =>{
             population,
             courseUnits,
             courseStatus,
-            students
+            students,
+            semester,
         } = req.body
 
     const allStudentExist = await Promise.all(
@@ -31,7 +32,8 @@ router.post('/addCourse', async (req, res) =>{
         population,
         courseUnits,
         courseStatus,
-        students
+        students,
+        semester
       });
   
       const savedCourse = await newCourse.save();
@@ -59,6 +61,7 @@ router.get('/getCourses', async (req, res) => {
         const course = await courseModel.findById(req.params.id)
         .populate('students._id', 'name email status role')
         .populate('students.isAddedBy', 'name')
+        .populate('semester', 'schoolYear startDate endDate')
         if(!course)return res.status(404).json({message: 'course not found'})
             res.status(200).json(course)
        } catch(err){

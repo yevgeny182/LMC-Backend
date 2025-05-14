@@ -6,6 +6,7 @@ const addCourseSchema = new mongoose.Schema({
     population: Number,
     courseUnits: Number,
     courseStatus: String,
+    semester: {type: mongoose.Schema.Types.ObjectId, ref: 'Semester'},
     students: [
         {
           _id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },

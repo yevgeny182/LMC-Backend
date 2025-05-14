@@ -16,9 +16,7 @@ router.get('/users', async (req, res) => {
 // delete users from DB
 router.delete('/users/:id', async (req, res)  => {
     try{
-        const userId = req.params.id;
-        const deletedUser = await registerModel.findByIdAndDelete(userId);
-        console.lo
+        const deletedUser = await registerModel.findByIdAndDelete(req.params.id);
         if (!deletedUser) {
             return res.status(404).json({ message: 'User not found' });
         }

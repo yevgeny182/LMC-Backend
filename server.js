@@ -4,8 +4,6 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 
-
-
 const app = express();
 const PORT = process.env.PORT || 5048;
 const MONGO_URI = process.env.MONGO_URI;
@@ -24,6 +22,8 @@ const userRoutes = require('./routes/userRoutes');
 app.use('/', userRoutes);
 const coursesRoute = require('./routes/courseRoutes')
 app.use('/courses', coursesRoute)
+const settingsRoute = require('./routes/settingsRoutes')
+app.use('/settings', settingsRoute)
 
 // Start the server
 app.listen(PORT, () => {
