@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const courseModel = require('../models/courses')
 const userModel = require('../models/register')
+const notification = require('../models/notification')
 
 //create new course for it to be populated by students
 router.post('/addCourse', async (req, res) =>{
@@ -62,6 +63,7 @@ router.get('/getCourses', async (req, res) => {
         .populate('students._id', 'name email status role')
         .populate('students.isAddedBy', 'name')
         .populate('semester', 'schoolYear startDate endDate')
+        .populate('teacher', 'name email role')
         if(!course)return res.status(404).json({message: 'course not found'})
             res.status(200).json(course)
        } catch(err){
@@ -101,15 +103,36 @@ router.get('/getCourses', async (req, res) => {
     const { userId, addedBy } = req.body;
 
     try {
-      const course = await courseModel.findById(courseId);
+      const course = await courseModel.findById(courseId)
       if (!course) return res.status(404).send('Course not found');
 
-      if (!course.students.includes(userId)) {
-        course.students.push({ _id: userId, isAddedBy: addedBy });
-        await course.save();
+      const alreadyEnrolled = course.students.some(
+        (student) => student._id.toString() === userId
+      )
+      if(!alreadyEnrolled){
+        course.students.push({_id: userId, isAddedBy: addedBy})
+        await course.save()
+
+        const studentEntry = course.students.find(
+          (student) => student._id.toString() === userId
+        )
+
+      let addedByName = 'student';
+      if (studentEntry?.isAddedBy) {
+        const addedByUser = await userModel.findById(studentEntry.isAddedBy);
+        if (addedByUser) {
+          addedByName = addedByUser.name;
+        }
       }
-  
-      res.status(200).json({ message: 'User added to course' });
+        await notification.create({
+          recipient: userId,
+          message: `You have been added to the course:[${course.courseCode} ${course.courseTitle}]by ${addedByName}`
+        })
+        console.log('Notification sent!')
+        res.status(200).json({ message: 'User added and notified' });
+      }else{
+        res.status(200).json({ message: 'Student already enrolled in course' });
+      }
     } catch (err) {
       console.error(err);
       res.status(500).send('Server error');
@@ -141,5 +164,53 @@ router.delete('/:courseId/removeUser', async (req, res) => {
   }
 })
 
+router.put('/:courseId/assignTeacher', async(req, res) => {
+  const {courseId} = req.params;
+  const {teacherId} = req.body;
+  try{
+    const course = await courseModel.findById(courseId)
+    if(!course)
+      return res.status(404).json({message: 'course not found'})
+
+      if(!course.teacher)
+        course.teacher = []
+
+
+    const alreadyAssigned = course.teacher.some((id) => id.toString() === teacherId)
+
+    if(!alreadyAssigned){
+    course.teacher.push(teacherId)
+    await course.save()
+     await notification.create({
+      recipient: teacherId,
+      message:`Admin: You are the assigned teacher for "${course.courseCode} ${course.courseTitle}" ` 
+    })
+ 
+    return res.status(200).json({message:'Teacher assigned to course success!'})
+    }else{
+      return res.status(409).json({message: 'Teacher already assigned!'})
+    }
+
+  }catch(err){
+    console.error('Error assigning teacher', err)
+    res.status(500).send('Server error')
+  }
+})
+
+router.put('/:courseId/removeTeacher', async(req, res) => {
+  const {courseId} = req.params;
+  const {teacherId} = req.body;
+  try{
+    const course = await courseModel.findById(courseId)
+    if(!course) 
+      return res.status(404).json({message: 'course not found'})
+    course.teacher = course.teacher.filter((id) => id.toString() !== teacherId)
+    await course.save()
+    res.status(200).json({message: 'Teacher removed from course'})
+  }catch(err){
+    console.error('Error removing teacher', err)
+    res.status(500).send('Server error')
+  }
+})
 
 module.exports = router

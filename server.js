@@ -24,6 +24,8 @@ const coursesRoute = require('./routes/courseRoutes')
 app.use('/courses', coursesRoute)
 const settingsRoute = require('./routes/settingsRoutes')
 app.use('/settings', settingsRoute)
+const notifyRoute = require('./routes/notificationRoutes')
+app.use('/notify', notifyRoute)
 
 // Start the server
 app.listen(PORT, () => {
