@@ -48,7 +48,9 @@ router.post('/addCourse', async (req, res) =>{
 //table of displaying courses admins can create, users can join
 router.get('/getCourses', async (req, res) => {
     try {
-      const courses = await courseModel.find().populate('students', 'name email status role');
+      const courses = await courseModel.find()
+      .populate('students', 'name email status role')
+      .populate('teacher','name email role');
       res.status(200).json(courses);
     } catch (err) {
       console.error(err);
@@ -116,19 +118,28 @@ router.get('/getCourses', async (req, res) => {
         const studentEntry = course.students.find(
           (student) => student._id.toString() === userId
         )
-
-      let addedByName = 'student';
+      let addedByName = '';
       if (studentEntry?.isAddedBy) {
         const addedByUser = await userModel.findById(studentEntry.isAddedBy);
         if (addedByUser) {
           addedByName = addedByUser.name;
+          if(addedByUser.role === 'Admin'){
+              await notification.create({
+                recipient: userId,
+                message: `You have been added to the course:[${course.courseCode} - ${course.courseTitle}]by ${addedByName}`,
+                courseId: courseId
+              })
+              console.log('Notification sent!')
+          }else{
+              await notification.create({
+                recipient: userId,
+                message: `You have joined the course:[${course.courseCode} - ${course.courseTitle}] go to Learning Course for more information.`,
+                courseId: courseId
+              })
+              console.log('Notification sent!')
+          }
         }
       }
-        await notification.create({
-          recipient: userId,
-          message: `You have been added to the course:[${course.courseCode} ${course.courseTitle}]by ${addedByName}`
-        })
-        console.log('Notification sent!')
         res.status(200).json({ message: 'User added and notified' });
       }else{
         res.status(200).json({ message: 'Student already enrolled in course' });
@@ -151,11 +162,15 @@ router.delete('/:courseId/removeUser', async (req, res) => {
       const userIndex = deleted.students.findIndex(
         (student) => student._id?.toString() === userId
       )
-
       if (userIndex === -1) return res.status(404).send('User not found in course');
   
       deleted.students.splice(userIndex, 1);
       await deleted.save();
+
+      await notification.deleteMany({
+        recipient: userId,
+        courseId: courseId
+      })
 
       return res.status(200).json({message: 'remove from course'})
   }catch(err){
