@@ -7,6 +7,9 @@ const gradeSchema = new mongoose.Schema({
     final: String,
     submittedBy: String,
     savedProgress: String,
+    /* isGraded: Boolean, */
+    isMidtermGraded:{type: Boolean, required: true, default: false},
+    isFinalGraded: {type: Boolean, required: true, default: false},
 }, {timestamps: true})
 
 const studentGrades = mongoose.model('Grade', gradeSchema)

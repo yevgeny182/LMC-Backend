@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const notification = require('../models/notification')
 
+//create notif
 router.post('/', async (req, res) => {
     try{
         const {recipient, message} = req.body
@@ -22,6 +23,7 @@ router.post('/', async (req, res) => {
     }
 })
 
+//fetch notif according to user
 router.get('/:userId', async (req, res) =>{
     try{
         const notif = await notification.find({recipient: req.params.userId})
@@ -32,6 +34,7 @@ router.get('/:userId', async (req, res) =>{
     }
 })
 
+//update notif "read"
 router.patch('/:notifId/read', async(req, res) =>{
     try{
         await notification.findByIdAndUpdate(req.params.notifId, {read: true})
