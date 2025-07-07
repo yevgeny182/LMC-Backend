@@ -1,7 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const Semester = require('../models/semester')
-const semester = require('../models/semester')
+
 
 
 router.post('/createSemester', async (req, res) => {

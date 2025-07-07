@@ -28,6 +28,8 @@ const notifyRoute = require('./routes/notificationRoutes')
 app.use('/notify', notifyRoute)
 const gradeRoute = require('./routes/gradesRoutes')
 app.use('/grades', gradeRoute)
+const announcementRoute = require('./routes/announcementRoutes')
+app.use('/announcements', announcementRoute)
 
 // Start the server
 app.listen(PORT, () => {
