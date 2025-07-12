@@ -5,8 +5,8 @@ const announcementsSchema = new mongoose.Schema({
     userId: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
     text: String,
     viewedBy: String,
-    fileName: String,
-    url: String, 
+    fileName: [String],
+    url: [String], 
 }, {timestamps: true})
 
 const announce = mongoose.model('Announcement', announcementsSchema)
